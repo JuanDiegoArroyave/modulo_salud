@@ -283,3 +283,52 @@ print(f"Train Accuracy: {train_accuracy}")
 
 print(f"Test Loss: {test_loss}")
 print(f"Test Accuracy: {test_accuracy}")
+
+
+#loaded_model y x_tests 
+#y son las etiquetas reales
+y_pred = loaded_model.predict(x_tests)
+
+#inicializar listas para almacenar predicciones y valores reales segmentados
+seg_1_pred, seg_2_pred, seg_3_pred = [], [], []
+seg_1_true, seg_2_true, seg_3_true = [], [], []
+
+#iterar sobre las predicciones continuas y valores reales para clasificar en segmentos
+for pred, true in zip(y_pred, y_test):
+    if 0 <= pred <= 0.25:
+        seg_1_pred.append(np.round(pred).astype(int))  # Redondear después de segmentar
+        seg_1_true.append(true)
+    elif 0.25 < pred <= 0.75:
+        seg_2_pred.append(np.round(pred).astype(int))
+        seg_2_true.append(true)
+    elif 0.75 < pred <= 1:
+        seg_3_pred.append(np.round(pred).astype(int))
+        seg_3_true.append(true)
+
+#convertir listas a numpy arrays
+seg_1_pred = np.array(seg_1_pred)
+seg_2_pred = np.array(seg_2_pred)
+seg_3_pred = np.array(seg_3_pred)
+seg_1_true = np.array(seg_1_true)
+seg_2_true = np.array(seg_2_true)
+seg_3_true = np.array(seg_3_true)
+
+#generar y graficar la matriz de confusión para cada segmento
+for i, (segment_true, segment_pred, label) in enumerate(
+    [(seg_1_true, seg_1_pred, 'Segmento 0-0.25'), 
+     (seg_2_true, seg_2_pred, 'Segmento 0.25-0.75'), 
+     (seg_3_true, seg_3_pred, 'Segmento 0.75-1')]
+):
+    if segment_true.size > 0 and segment_pred.size > 0:
+        # Calcular la matriz de confusión
+        cm = confusion_matrix(segment_true, segment_pred)
+        
+        # Graficar la matriz de confusión
+        plt.figure(figsize=(6, 4))
+        sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', cbar=False)
+        plt.title(f'Matriz de Confusión - {label}')
+        plt.xlabel('Etiquetas Predichas')
+        plt.ylabel('Etiquetas Reales')
+        plt.show()
+    else:
+        print(f"No hay datos para el {label}")
